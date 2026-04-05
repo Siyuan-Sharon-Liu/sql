@@ -24,6 +24,9 @@ If you encounter any difficulties or have questions, please don't hesitate to re
 *** 
 
 ## Section 1:
+
+![Logic Model: Customer and Customer Purchases](Assignment1_logic_model_customertables.png)
+
 You can start this section following *session 1*.
 
 Steps to complete this part of the assignment:
@@ -50,6 +53,7 @@ By default, DB Browser for SQLite has three windows, with four tabs in the main 
 
 Your screen should look like this (or very similar)
 ![db_browser_for_sqlite.png](./images/01_db_browser_for_sqlite.png)
+
 
 #### 3) The farmersmarket.db
 There are 10 tables in the Main Window:
@@ -105,6 +109,7 @@ Please do not pick the exact same tables that I have already diagrammed. For exa
 	- These are the tables that are connected
 	- <img src="./images/01_farmers_market_conceptual_model.png" width="600">
 - The column names can be found in a few spots (DB Schema window in the bottom right, the Database Structure tab in the main window by expanding each table entry, at the top of the Browse Data tab in the main window)
+
 
 ***
 
@@ -209,5 +214,14 @@ Consider, for example, concepts of fariness, inequality, social structures, marg
 
 
 ```
-Your thoughts...
+Thoughts on Data Identity and Privacy Concern - Siyuan Liu
+
+Every time we browse the web or use an app, we are feeding a massive collection machine. While the technology is impressive, the scale of this data harvesting is increasingly concerning.
+
+To be honest, I appreciate the convenience that comes with these systems. I enjoy algorithmic recommendations that suggest music I like or news that is relevant to my interests. These algorithms save time and filter the noise of the internet. However, there is a point where personalization becomes intrusive. Hyper-personalized advertisements are often disturbing. When an ad appears for a product I only briefly mentioned or thought about, it feels less like a service and more like constant surveillance. It crosses the line from being helpful to being creepy.
+
+My biggest concern is the lack of transparency regarding our "data identity." Inside these databases, a digital version of me exists—a collection of scores, labels, and behavioral predictions. I do not know what this profile looks like, how it categorizes me, or how it might affect my future opportunities. Currently, we have almost no autonomy over this identity. We generate the data, but we do not own the results.
+
+Looking forward, I wonder how government regulation will evolve. We need more than just long "terms and conditions" documents that no one reads. I hope to see a future where regulations give individuals true ownership and control over their data. We need a system where our digital identities belong to us, not just to the platforms that profit from them. Without meaningful oversight, the gap between user convenience and corporate control will only continue to grow.
+
 ```
