@@ -1,22 +1,32 @@
-<?xml version="1.0" encoding="UTF-8"?><sqlb_project><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="12168"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><table title="booth" custom_title="0" dock_id="4" table="4,5:mainbooth"/><dock_state state="000000ff00000000fd000000010000000200000536000003a5fc0100000003fb000000160064006f0063006b00420072006f00770073006500310100000000ffffffff0000000000000000fb000000160064006f0063006b00420072006f00770073006500320100000000000005360000000000000000fb000000160064006f0063006b00420072006f00770073006500340100000000ffffffff0000012300ffffff000005360000000000000004000000040000000800000008fc00000000"/><default_encoding codec=""/><browse_table_settings><table schema="main" name="booth" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_" freeze_columns="0"><sort/><column_widths><column index="1" value="136"/><column index="2" value="164"/><column index="3" value="300"/><column index="4" value="108"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table></browse_table_settings></tab_browse><tab_sql><sql name="COUNT">/* MODULE 3 */
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="/Users/liusiyuan/Library/CloudStorage/Dropbox/Mac (2)/Documents/career/DS/uoft_dsi/sql/05_src/sql/farmersmarket.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="7306"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/><expanded_item id="4" parent="1"/></tab_structure><tab_browse><table title="customer_purchases" custom_title="0" dock_id="4" table="4,18:maincustomer_purchases"/><dock_state state="000000ff00000000fd00000001000000020000060b000003acfc0100000003fb000000160064006f0063006b00420072006f00770073006500310100000000ffffffff0000000000000000fb000000160064006f0063006b00420072006f00770073006500320100000000000005360000000000000000fb000000160064006f0063006b00420072006f007700730065003401000000000000060b0000012000ffffff0000060b0000000000000004000000040000000800000008fc00000000"/><default_encoding codec=""/><browse_table_settings><table schema="main" name="booth" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_" freeze_columns="0"><sort/><column_widths><column index="1" value="104"/><column index="2" value="125"/><column index="3" value="300"/><column index="4" value="83"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="customer_purchases" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_" freeze_columns="0"><sort/><column_widths><column index="1" value="80"/><column index="2" value="73"/><column index="3" value="91"/><column index="4" value="91"/><column index="5" value="62"/><column index="6" value="184"/><column index="7" value="119"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table></browse_table_settings></tab_browse><tab_sql><sql name="COUNT">/* MODULE 3 */
 /* COUNT */
 
 
 /* 1. Count the number of products */
- 
+SELECT COUNT(product_id) AS num_of_products
+	FROM product;
 
  
 /* 2. How many products per product_qty_type */
-
+SELECT product_qty_type, COUNT(product_id) AS num_of_products
+	FROM product
+	GROUP BY product_qty_type;
 
 
 /* 3. How many products per product_qty_type and per their product_size */
-
+SELECT  product_size, product_qty_type
+	, COUNT(product_id) AS 	num_of_prod
+	FROM product
+	GROUP BY product_size, product_qty_type;
 
 
 /* COUNT DISTINCT 
     4. How many unique products were bought */
+SELECT COUNT(DISTINCT product_id) as num_unique_products
+	FROM customer_purchases;
 
+	
+	
 
 --------------------------------------------------------------------------------------------------------------------------------------------
 </sql><sql name="SUM_AVG">/* MODULE 3 */
@@ -24,10 +34,20 @@
 
 
 /* 1. How much did customers spend each day */
-
+SELECT market_date, customer_id
+	, SUM(quantity * cost_to_customer_per_qty) AS total_spend
+	FROM customer_purchases
+	GROUP BY market_date, customer_id;
  
 
 /* 2. How much does each customer spend on average */
+SELECT customer_first_name, customer_last_name
+	, ROUND(AVG(quantity * cost_to_customer_per_qty)  , 2)
+		AS avg_spend
+	FROM customer_purchases as cp
+	INNER JOIN customer as c
+		ON cp.customer_id = c.customer_id
+	GROUP BY  c.customer_id;
 
 
 --------------------------------------------------------------------------------------------------------------------------------------------
@@ -38,15 +58,31 @@
 /* 1. What is the most expensive product 
 ...pay attention to how it doesn't handle ties very well
 */
- 
+ SELECT product_name
+	, MAX(original_price) as most_expensive 
+ FROM vendor_inventory as vi
+ INNER JOIN product as p
+	ON p.product_id = vi.product_id;
+
 
 /* 2. Prove that max is working */
+SELECT DISTINCT product_name, original_price
+ FROM vendor_inventory as vi
+ INNER JOIN product as p
+	ON p.product_id = vi.product_id
+	ORDER BY original_price DESC;  -- [step 1] ignored one product (cherry pie) as it ties with apple pie
 
 
 
 /* 3. Find the minimum price per each product_qty_type */
-
-
+SELECT product_name, product_qty_type
+	, MIN(original_price)
+ FROM vendor_inventory as vi
+ INNER JOIN product as p
+	ON p.product_id = vi.product_id
+	
+GROUP BY 	product_qty_type
+ORDER BY product_qty_type;
 
 /* 4. Prove that min is working */
 
@@ -62,7 +98,10 @@
 
 
 /* 1. power, pi(), ceiling, division, integer division, etc */
-SELECT 
+SELECT  power(9, 2) as power, pi() as pi;
+
+SELECT 10.0/3.0 as division
+	, CAST(10.0 as INT) / CAST(3.0 as INT) as  integer_division;  -- -- 将表达式转换为新的数据类型 | CAST(expression AS target_type)
 
 
 /* 2. Every even vendor_id with modulo */
@@ -79,11 +118,22 @@ SELECT
 /* 1. How much did a customer spend on each day?
 Filter to customer_id between 1 and 5 and total_cost &gt; 50 
 ... What order of execution occurs?*/
- 
+ SELECT market_date, customer_id
+	, SUM(quantity*cost_to_custo mer_per_qty) as total_spend
+	
+	FROM customer_purchases
+	WHERE customer_id BETWEEN 1 AND 5
+	GROUP BY market_date, customer_id
+	HAVING total_spend &gt; 50;
 
 
 /* 2. How many products were bought?
 Filter to number of purchases between 300 and 500  */
+SELECT count(product_id) as num_of_produ
+	, product_id
+FROM customer_purchases
+	GROUP BY product_id
+	HAVING count(product_id) BETWEEN 300 AND 500;
 
 
 --------------------------------------------------------------------------------------------------------------------------------------------
@@ -93,12 +143,31 @@ Filter to number of purchases between 300 and 500  */
 
 /*1. Simple subquery in a FROM statement, e.g. for inflation
 ...we could imagine joining this to a more complex query perhaps */
-
+	SELECT DISTINCT product_id, inflation
+		
+		FROM(
+			SELECT product_id, cost_to_customer_per_qty, 
+			CASE WHEN  cost_to_customer_per_qty &lt; 1.00 then cost_to_customer_per_qty * 5
+				ELSE cost_to_customer_per_qty
+				END
+				as inflation
+				FROM customer_purchases
+			);
+		
 
 
 
 /* 2. What is the single item that has been bought in the greatest quantity?*/
-
+SELECT product_name
+	, max(quantity_purchased) -- coming from the subquery &quot;x&quot;
+FROM product as p
+INNER JOIN (
+	-- inner QUERY
+		SELECT product_id 
+			, count(quantity) as quantity_purchased
+		FROM customer_purchases 
+		GROUP BY product_id
+) as x on p.product_id = x.product_id
 
 --------------------------------------------------------------------------------------------------------------------------------------------
 </sql><sql name="subquery_where">/* MODULE 3 */
@@ -106,13 +175,28 @@ Filter to number of purchases between 300 and 500  */
 
 
 /* 1. How much did each customer spend at each vendor for each day at the market WHEN IT RAINS */
-
-
+SELECT market_date, customer_id, vendor_id
+	, sum(quantity * cost_to_customer_per_qty) as total_spent
+FROM customer_purchases
+WHERE market_date IN  -- filter by rain_flat &quot;what dates were raining&quot;
+	(
+		SELECT market_date FROM market_date_info
+		WHERE market_rain_flag = 1
+	)
+GROUP BY market_date, customer_id, vendor_id;
 
 
 /* 2. What is the name of the vendor who sells pie */
+SELECT DISTINCT vendor_name
+FROM customer_purchases as cp
+INNER JOIN vendor as v 
+	on cp.vendor_id = v.vendor_id
 
-
+WHERE product_id in (	
+	SELECT product_id 
+	FROM product
+	WHERE product_name like '%pie%'
+);
 --------------------------------------------------------------------------------------------------------------------------------------------
 </sql><sql name="temp_table">/* MODULE 3 */
 /* Temp Tables */
@@ -123,21 +207,28 @@ Filter to number of purchases between 300 and 500  */
 /* some structural code */
 /* ...heads up, sometimes this query can be finnicky -- it's good to try highlighting different sections to help it succeed...*/
 
--- if a table named new_vendor_inventory exists, delete it, otherwise do NOTHING
+--(1) if a table named new_vendor_inventory exists, delete it, otherwise do NOTHING
 DROP TABLE IF EXISTS temp.new_vendor_inventory;
 
---make the table
+--(2)make the temp table
 CREATE TABLE temp.new_vendor_inventory AS
-
 -- definition of the table
-
+SELECT *,
+original_price * 5 as inflation
+FROM vendor_inventory;
 
 
 
 
 /* 2. put the previous table into another temp table, e.g. as temp.new_new_vendor_inventory  */
+DROP TABLE IF EXISTS temp.new_new_vendor_inventory;
+
+CREATE TABLE  temp.new_new_vendor_inventory as
+SELECT * , inflation * 2 as super_inflation
+FROM temp.new_vendor_inventory;
 
 
+SELECT * FROM temp.new_new_vendor_inventory;
 
 --------------------------------------------------------------------------------------------------------------------------------------------
 </sql><sql name="CTE">/* MODULE 3 */
@@ -145,31 +236,62 @@ CREATE TABLE temp.new_vendor_inventory AS
 
 
 /* 1. Calculate sales per vendor per day */
-SELECT 
+WITH vendor_daily_sales AS (
+    SELECT
+        md.market_date
+        ,market_day
+        ,market_week
+        ,market_year
+        ,vendor_name
+        ,SUM(quantity * cost_to_customer_per_qty) as sales
+    FROM customer_purchases cp
+    INNER JOIN market_date_info as md
+        ON cp.market_date = md.market_date
+    INNER JOIN vendor as v
+        ON cp.vendor_id = v.vendor_id
+    GROUP BY md.market_date, v.vendor_id
+)
 
 
-
+--add another CTE: !! Don't add another WITH. CTE 之间用逗号分割
+, another_cte as (
+	SELECT * from product
+)
 
 
 /* ... re-aggregate the daily sales for each WEEK instead now  */
-
+SELECT
+    market_year,
+    market_week,
+    vendor_name,
+    SUM(sales) as weekly_sales
+FROM vendor_daily_sales
+GROUP BY market_year, market_week, vendor_name
 
 
 --------------------------------------------------------------------------------------------------------------------------------------------
 </sql><sql name="dates">/* MODULE 3 */
 /* Date functions */
 
-
 /* 1. now */
-SELECT 
-
+SELECT DISTINCT
+DATE('now') as [now]
+,DATETIME('now') as [now]
 
 /* 2. strftime */
+,strftime('%Y/%m','now') as year_month
+,strftime('%Y-%m-%d','now', '+50 days') as the_future
+,market_date
+,strftime('%m-%d-%Y', market_date,'+50 days','-1 year') as the_past
 
-
+FROM market_date_info;
 
 /* 3. adding dates, e.g. last date of the month */
-
+SELECT DISTINCT
+market_date
+,DATE(market_date, 'start of month', '-1 day') as end_of_prev_month
+,DATE(market_date, 'start of month') as start_of_month
+FROM market_date_info;
 
 
 /* 4. difference between dates, 
@@ -177,4 +299,11 @@ SELECT
  b. number of YEARS between now and market_date
  c. number of HOURS bewtween now and market_date
  */
-</sql><current_tab id="0"/></tab_sql></sqlb_project>
+
+ SELECT market_date
+,julianday('now') - julianday(market_date) as datesbetweenmktdate
+,(julianday('now') - julianday(market_date)) / 365.25 as yearsbetweenmktdate
+,(julianday('now') - julianday(market_date)) * 24 as hoursbetweenmktdate
+FROM market_date_info
+ 
+ </sql><current_tab id="9"/></tab_sql></sqlb_project>
