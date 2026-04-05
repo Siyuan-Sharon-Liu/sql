@@ -24,6 +24,9 @@ If you encounter any difficulties or have questions, please don't hesitate to re
 *** 
 
 ## Section 1:
+
+![Logic Model: Customer and Customer Purchases](Assignment1_logic_model_customertables.png)
+
 You can start this section following *session 1*.
 
 Steps to complete this part of the assignment:
@@ -50,6 +53,7 @@ By default, DB Browser for SQLite has three windows, with four tabs in the main 
 
 Your screen should look like this (or very similar)
 ![db_browser_for_sqlite.png](./images/01_db_browser_for_sqlite.png)
+
 
 #### 3) The farmersmarket.db
 There are 10 tables in the Main Window:
@@ -105,6 +109,7 @@ Please do not pick the exact same tables that I have already diagrammed. For exa
 	- These are the tables that are connected
 	- <img src="./images/01_farmers_market_conceptual_model.png" width="600">
 - The column names can be found in a few spots (DB Schema window in the bottom right, the Database Structure tab in the main window by expanding each table entry, at the top of the Browse Data tab in the main window)
+
 
 ***
 
