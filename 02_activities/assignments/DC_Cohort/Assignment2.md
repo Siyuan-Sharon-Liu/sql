@@ -47,8 +47,18 @@ There are several tools online you can use, I'd recommend [Draw.io](https://www.
 
 **HINT:** You do not need to create any data for this prompt. This is a conceptual model only. 
 
+```
+Please find the ERD - logical model after the prompt 2 instructions.
+```
+
 #### Prompt 2
 We want to create employee shifts, splitting up the day into morning and evening. Add this to the ERD.
+
+**Figure 1:** Logical Model for Bookstore
+
+![Logical Model for Bookstore](logical_model_bookstore.png)
+
+
 
 #### Prompt 3
 The store wants to keep customer addresses. Propose two architectures for the CUSTOMER_ADDRESS table, one that will retain changes, and another that will overwrite. Which is type 1, which is type 2? 
@@ -56,7 +66,16 @@ The store wants to keep customer addresses. Propose two architectures for the CU
 **HINT:** search type 1 vs type 2 slowly changing dimensions. 
 
 ```
-Your answer...
+My answer below:
+
+
+Type 1 and 2 of the Slowly Changing Dimensions (SCD) are:
+- Type 1 (Overwrite - No History): The current row is updated with new values, and the previous row is overwritten.
+    Store customer_id and address details; updates replace existing values, losing all previous history.
+
+- Type 2 (Add - Full History): The current row is updated with new values, and the previous row is retained.
+    Keep start_date/end_date and add an address_id PK to track unique versions.
+
 ```
 
 ***
@@ -155,7 +174,7 @@ Steps to complete this part of the assignment:
 <div align="center">-</div>
 
 #### DELETE 
-1. Delete the older record for the whatever product you added.
+1. Delete the older record for whatever product you added.
 
 **HINT**: If you don't specify a WHERE clause, [you are going to have a bad time](https://imgflip.com/i/8iq872).
 
@@ -190,6 +209,7 @@ Read: Boykis, V. (2019, October 16). _Neural nets are just people all the way do
 Consider, for example, concepts of labour, bias, LLM proliferation, moderating content, intersection of technology and society, ect. 
 
 
+
 ```
-Your thoughts...
+I am concerned that AI agents, operating without rigorous human supervision, may generate "hallucinations" that undermine academic integrity. If these errors are accepted as fact in research, they risk polluting the collective body of human knowledge with plausible but false information, ultimately eroding the reliability of our scholarly foundations.
 ```
