@@ -3,6 +3,7 @@
 /* SECTION 2 */
 
 -- COALESCE
+
 /* 1. Our favourite manager wants a detailed long list of products, but is afraid of tables! 
 We tell them, no problem! We can produce a list with all of the appropriate details. 
 
@@ -21,12 +22,14 @@ nulls, and 'unit' for the second column with nulls.
 The `||` values concatenate the columns into strings. 
 Edit the appropriate columns -- you're making two edits -- and the NULL rows will be fixed. 
 All the other rows will remain the same. */
---QUERY 1
 
+-- QUERY 1
+SELECT 
+    -- handle potential NULLs 
+    product_name || ', ' || COALESCE(product_size, '') || ' (' || COALESCE(product_qty_type, 'unit') || ')' as product_info_all
+FROM product;
 
-
-
---END QUERY
+-- END QUERY
 
 
 --Windowed Functions
@@ -40,9 +43,12 @@ each new market date for each customer, or select only the unique market dates p
 HINT: One of these approaches uses ROW_NUMBER() and one uses DENSE_RANK(). 
 Filter the visits to dates before April 29, 2022. */
 --QUERY 2
-
-
-
+SELECT 
+    customer_id,
+    market_date,
+    DENSE_RANK() OVER (PARTITION BY customer_id ORDER BY market_date) AS visit_number
+FROM customer_purchases
+WHERE market_date < '2022-04-29';
 
 --END QUERY
 
@@ -53,8 +59,17 @@ only the customer’s most recent visit.
 HINT: Do not use the previous visit dates filter. */
 --QUERY 3
 
+-- To get the  most recent visit, use subqueries
 
-
+SELECT 
+    * FROM (
+    SELECT 
+        *, 
+        DENSE_RANK() OVER (PARTITION BY customer_id ORDER BY market_date DESC) AS most_recent_visit  -- col needed
+    FROM customer_purchases
+) AS ranked_data
+WHERE most_recent_visit = 1  -- can have multiple purchases. But [transaction_time] within the same date are very close.
+ORDER BY customer_id;
 
 --END QUERY
 
@@ -66,9 +81,13 @@ You can make this a running count by including an ORDER BY within the PARTITION 
 Filter the visits to dates before April 29, 2022. */
 --QUERY 4
 
-
-
-
+-- No GROUP BY:  include a value along with *each row*
+SELECT 
+    *,  
+    COUNT(product_id) OVER (PARTITION BY customer_id, product_id) AS total_times_purchased_customer
+FROM customer_purchases
+WHERE market_date < '2022-04-29'
+ORDER BY customer_id, product_id, market_date;
 --END QUERY
 
 
@@ -85,8 +104,14 @@ Remove any trailing or leading whitespaces. Don't just use a case statement for 
 Hint: you might need to use INSTR(product_name,'-') to find the hyphens. INSTR will help split the column. */
 --QUERY 5
 
-
-
+SELECT 
+    product_name,
+    CASE 
+        WHEN INSTR(product_name, '-') > 0 
+        THEN TRIM(SUBSTR(product_name, INSTR(product_name, '-') + 1)) 
+        ELSE NULL 
+    END AS description
+FROM product;
 
 --END QUERY
 
@@ -94,7 +119,9 @@ Hint: you might need to use INSTR(product_name,'-') to find the hyphens. INSTR w
 /* 2. Filter the query to show any product_size value that contain a number with REGEXP. */
 --QUERY 6
 
-
+SELECT *
+FROM product
+WHERE product_size REGEXP '[0-9]';
 
 
 --END QUERY
@@ -111,8 +138,26 @@ HINT: There are a possibly a few ways to do this query, but if you're struggling
 with a UNION binding them. */
 --QUERY 7
 
+-- use CTE. 
+-- (1) daily sales
+WITH daily_sales as (
+	SELECT market_date, sum(quantity * cost_to_customer_per_qty) as total_day_sales
+		FROM customer_purchases
+	GROUP BY market_date
+), 
 
+-- (2) rank daily sales
+ranked_sales as (
+	SELECT market_date, total_day_sales, 
+		RANK() OVER (ORDER BY total_day_sales ASC) as rank_lowest, 
+		RANK() OVER (ORDER BY total_day_sales DESC) as rank_highest
+		FROM daily_sales
+)
 
+-- (3) query and union
+SELECT market_date, total_day_sales, 'Lowest Sales' AS rank_sales FROM ranked_sales WHERE rank_lowest = 1
+UNION
+SELECT market_date, total_day_sales, 'Highest Sales' AS rank_sales FROM ranked_sales WHERE rank_highest = 1;
 
 --END QUERY
 
@@ -132,8 +177,23 @@ How many customers are there (y).
 Before your final group by you should have the product of those two queries (x*y).  */
 --QUERY 8
 
-
-
+SELECT 
+    vendor_name,
+    product_name,
+    -- Calculate total revenue: price * 5 units per customer across the joined rows
+    SUM(original_price * 5) AS potential_total_revenue
+FROM (
+    -- Subquery: Get unique vendor-product offerings and their prices
+SELECT 
+        v.vendor_name, 
+        p.product_name, 
+        vi.original_price
+    FROM vendor_inventory AS vi
+    JOIN vendor AS v ON vi.vendor_id = v.vendor_id
+    JOIN product AS p ON vi.product_id = p.product_id
+) AS inventory
+CROSS JOIN customer AS c -- cross join
+GROUP BY vendor_name, product_name;
 
 --END QUERY
 
@@ -144,9 +204,14 @@ This table will contain only products where the `product_qty_type = 'unit'`.
 It should use all of the columns from the product table, as well as a new column for the `CURRENT_TIMESTAMP`.  
 Name the timestamp column `snapshot_timestamp`. */
 --QUERY 9
+DROP TABLE IF EXISTS product_units;
 
-
-
+CREATE TABLE product_units AS
+SELECT 
+    *, 
+    CURRENT_TIMESTAMP AS snapshot_timestamp  -- new column
+FROM product
+WHERE product_qty_type = 'unit';
 
 --END QUERY
 
@@ -154,20 +219,36 @@ Name the timestamp column `snapshot_timestamp`. */
 /*2. Using `INSERT`, add a new row to the product_units table (with an updated timestamp). 
 This can be any product you desire (e.g. add another record for Apple Pie). */
 --QUERY 10
+INSERT INTO product_units (
+    product_id, 
+    product_name, 
+    product_size, 
+    product_category_id, 
+    product_qty_type, 
+    snapshot_timestamp
+)
+VALUES (
+    11, 
+    'Apple Pie inserted by Siyuan', 
+    '6 inch', 
+    3, 
+    'unit', 
+    CURRENT_TIMESTAMP -- Use the function to get the current time for this new row
+);
 
 
-
-
+-- SELECT * FROM product_units;
 --END QUERY
 
 
 -- DELETE
-/* 1. Delete the older record for the whatever product you added. 
+/* 1. Delete the older record for whatever product you added. 
 
 HINT: If you don't specify a WHERE clause, you are going to have a bad time.*/
 --QUERY 11
 
-
+DELETE FROM product_units
+WHERE product_name = 'Apple Pie inserted by Siyuan';
 
 
 --END QUERY
@@ -184,14 +265,24 @@ Then, using UPDATE, change the current_quantity equal to the last quantity value
 
 HINT: This one is pretty hard. 
 First, determine how to get the "last" quantity per product. 
-Second, coalesce null values to 0 (if you don't have null values, figure out how to rearrange your query so you do.) 
+Second, *coalesce* null values to 0 (if you don't have null values, figure out how to rearrange your query so you do.) 
 Third, SET current_quantity = (...your select statement...), remembering that WHERE can only accommodate one column. 
 Finally, make sure you have a WHERE statement to update the right row, 
 	you'll need to use product_units.product_id to refer to the correct row within the product_units table. 
 When you have all of these components, you can run the update statement. */
 --QUERY 12
 
+ALTER TABLE product_units
+ADD current_quantity INT;  -- add a column
 
+UPDATE product_units
+SET current_quantity = (  -- set 
+    SELECT COALESCE(vi.quantity, 0)   -- start
+    FROM vendor_inventory vi    
+    WHERE vi.product_id = product_units.product_id  
+    ORDER BY vi.market_date DESC
+    LIMIT 1
+);
 
 
 --END QUERY
